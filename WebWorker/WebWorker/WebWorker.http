@@ -1,6 +1,0 @@
-@WebWorker_HostAddress = http://localhost:5264
-
-GET {{WebWorker_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
