@@ -1,0 +1,64 @@
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env.local
+frontend/.env.*.local
+frontend/*.log
+
+# Backend
+backend/bin/
+backend/obj/
+backend/.vs/
+backend/appsettings.Development.json
+backend/appsettings.Local.json
+backend/**/*.db
+backend/**/*.db-shm
+backend/**/*.db-wal
+clonepinterest.db
+clonepinterest.db-shm
+clonepinterest.db-wal
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+build/
+dist/
+*.dll
+*.pdb
+
+# Images (локальне зберігання)
+backend/wwwroot/uploads/
+backend/wwwroot/images/
+
+# Environment
+.env
+.env.local
+.env.*.local
+

@@ -1,0 +1,58 @@
+{
+  "Version": 1,
+  "Hash": "78ibvBaaDAacxjun/9pAUjJqbsd7GzTvO4q1fh+Hk8g=",
+  "Source": "ClonePinterest.API",
+  "BasePath": "_content/ClonePinterest.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "ClonePinterest.API\\wwwroot",
+      "Source": "ClonePinterest.API",
+      "ContentRoot": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\",
+      "BasePath": "_content/ClonePinterest.API",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\.gitkeep",
+      "SourceId": "ClonePinterest.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\",
+      "BasePath": "_content/ClonePinterest.API",
+      "RelativePath": ".gitkeep",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\.gitkeep"
+    },
+    {
+      "Identity": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\uploads\\.gitkeep",
+      "SourceId": "ClonePinterest.API",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\",
+      "BasePath": "_content/ClonePinterest.API",
+      "RelativePath": "uploads/.gitkeep",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\.gitkeep"
+    }
+  ]
+}
