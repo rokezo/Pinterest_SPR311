@@ -1,0 +1,9 @@
+.home-container {
+  min-height: 100vh;
+  background: white;
+}
+
+.home-main {
+  padding-top: 0;
+}
+
