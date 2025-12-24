@@ -274,3 +274,5 @@ C:\Users\dimar\source\repos\Pinterest_SPR311\backend\ClonePinterest.API\obj\Debu
 C:\Users\dimar\source\repos\Pinterest_SPR311\backend\ClonePinterest.API\obj\Debug\net8.0\ClonePinterest.API.genruntimeconfig.cache
 C:\Users\dimar\source\repos\Pinterest_SPR311\backend\ClonePinterest.API\obj\Debug\net8.0\ref\ClonePinterest.API.dll
 C:\Users\dimar\source\repos\Pinterest_SPR311\backend\ClonePinterest.API\bin\Debug\net8.0\SixLabors.ImageSharp.dll
+C:\Users\dimar\source\repos\Pinterest_SPR311\backend\ClonePinterest.API\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
+C:\Users\dimar\source\repos\Pinterest_SPR311\backend\ClonePinterest.API\bin\Debug\net8.0\package-lock.json

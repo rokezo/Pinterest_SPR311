@@ -20,6 +20,7 @@ using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["SecretKey"];
+var googleSettings = builder.Configuration.GetSection("Google");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -38,6 +39,13 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
     };
+})
+.AddGoogle(options =>
+{
+    options.ClientId = googleSettings["ClientId"] ?? string.Empty;
+    options.ClientSecret = googleSettings["ClientSecret"] ?? string.Empty;
+    options.CallbackPath = "/api/Auth/google-callback";
+    options.SaveTokens = true;
 });
 
 builder.Services.AddAuthorization();
