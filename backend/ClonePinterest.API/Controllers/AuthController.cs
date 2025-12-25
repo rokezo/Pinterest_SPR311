@@ -135,7 +135,7 @@ public class AuthController : ControllerBase
     [HttpGet("google")]
     public IActionResult GoogleLogin()
     {
-        var redirectUrl = "/api/Auth/google-callback";
+        var redirectUrl = Url.Action("GoogleCallback", "Auth", null, Request.Scheme);
         var properties = new AuthenticationProperties 
         { 
             RedirectUri = redirectUrl 
@@ -199,15 +199,8 @@ public class AuthController : ControllerBase
 
         var token = _jwtService.GenerateToken(user);
 
-        var response = new AuthResponseDto
-        {
-            Token = token,
-            UserId = user.Id,
-            Username = user.Username,
-            Email = user.Email
-        };
-
-        return Ok(response);
+        var frontendUrl = "http://localhost:5173";
+        return Redirect($"{frontendUrl}/auth/google-callback?token={token}");
     }
 }
 

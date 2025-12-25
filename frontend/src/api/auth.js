@@ -44,6 +44,10 @@ export const authService = {
     const response = await api.get('/auth/me')
     return response.data
   },
+
+  googleLogin: () => {
+    window.location.href = `${API_BASE_URL}/auth/google`
+  },
 }
 
 export default api

@@ -81,6 +81,30 @@ export const AuthProvider = ({ children }) => {
     setError(null)
   }
 
+  const loginWithGoogle = () => {
+    authService.googleLogin()
+  }
+
+  const handleGoogleCallback = async () => {
+    try {
+      setError(null)
+      const urlParams = new URLSearchParams(window.location.search)
+      const token = urlParams.get('token')
+      
+      if (token) {
+        localStorage.setItem('token', token)
+        await loadUser()
+        return { success: true }
+      }
+      
+      return { success: false, error: 'No token received' }
+    } catch (err) {
+      const errorMessage = 'Google login failed. Please try again.'
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -88,6 +112,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    loginWithGoogle,
+    handleGoogleCallback,
     isAuthenticated: !!user,
   }
 

@@ -1,5 +1,6 @@
 using ClonePinterest.API.Data;
 using ClonePinterest.API.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -8,6 +9,8 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDataProtection();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -26,6 +29,16 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.Name = ".AspNetCore.Cookies";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+    options.SlidingExpiration = true;
 })
 .AddJwtBearer(options =>
 {
@@ -40,12 +53,13 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
     };
 })
-.AddGoogle(options =>
+.AddGoogle("Google", options =>
 {
     options.ClientId = googleSettings["ClientId"] ?? string.Empty;
     options.ClientSecret = googleSettings["ClientSecret"] ?? string.Empty;
     options.CallbackPath = "/api/Auth/google-callback";
     options.SaveTokens = true;
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
 builder.Services.AddAuthorization();
@@ -108,17 +122,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
+
+app.UseCors("AllowReactApp");
+
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+var uploadsPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads");
+Directory.CreateDirectory(uploadsPath);
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads")),
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsPath),
     RequestPath = "/uploads"
 });
-
-app.UseCors("AllowReactApp");
 
 app.UseAuthentication();
 app.UseAuthorization();
