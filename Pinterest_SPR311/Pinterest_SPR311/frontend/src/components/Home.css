@@ -1,0 +1,30 @@
+.home-container {
+  min-height: 100vh;
+  background: white;
+}
+
+.home-layout {
+  display: flex;
+  margin-top: 60px;
+}
+
+.home-main {
+  flex: 1;
+  margin-left: 60px;
+  padding: 20px;
+  min-height: calc(100vh - 60px);
+}
+
+@media (max-width: 1024px) {
+  .home-main {
+    margin-left: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-main {
+    margin-left: 0;
+    padding: 10px;
+  }
+}
+

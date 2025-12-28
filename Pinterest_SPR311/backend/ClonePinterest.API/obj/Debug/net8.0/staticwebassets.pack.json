@@ -1,0 +1,29 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\.gitkeep",
+      "PackagePath": "staticwebassets\\.gitkeep"
+    },
+    {
+      "Id": "C:\\Users\\dimar\\Desktop\\ClonePinterest\\backend\\ClonePinterest.API\\wwwroot\\uploads\\.gitkeep",
+      "PackagePath": "staticwebassets\\uploads\\.gitkeep"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.ClonePinterest.API.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.ClonePinterest.API.props",
+      "PackagePath": "build\\ClonePinterest.API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.ClonePinterest.API.props",
+      "PackagePath": "buildMultiTargeting\\ClonePinterest.API.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.ClonePinterest.API.props",
+      "PackagePath": "buildTransitive\\ClonePinterest.API.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

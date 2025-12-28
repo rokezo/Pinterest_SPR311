@@ -1,0 +1,6 @@
+@ClonePinterest.API_HostAddress = http://localhost:5259
+
+GET {{ClonePinterest.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

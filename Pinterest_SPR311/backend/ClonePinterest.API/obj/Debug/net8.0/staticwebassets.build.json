@@ -1,0 +1,19 @@
+{
+  "Version": 1,
+  "Hash": "E5epKybSvV2vCaFTM9g5hhV1axuZ5xrHc4KPgtR4qHw=",
+  "Source": "ClonePinterest.API",
+  "BasePath": "_content/ClonePinterest.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [
+    {
+      "Name": "ClonePinterest.API\\wwwroot",
+      "Source": "ClonePinterest.API",
+      "ContentRoot": "C:\\Users\\dimar\\source\\repos\\Pinterest_SPR311\\backend\\ClonePinterest.API\\wwwroot\\",
+      "BasePath": "_content/ClonePinterest.API",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": []
+}

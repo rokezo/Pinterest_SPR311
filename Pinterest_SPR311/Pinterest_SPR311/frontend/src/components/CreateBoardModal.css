@@ -1,0 +1,150 @@
+.create-board-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.create-board-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.create-board-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #8e8e8e;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.create-board-modal-close:hover {
+  background-color: #efefef;
+}
+
+.create-board-modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #efefef;
+}
+
+.create-board-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111;
+}
+
+.create-board-modal-form {
+  padding: 24px;
+}
+
+.create-board-error {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.create-board-form-group {
+  margin-bottom: 20px;
+}
+
+.create-board-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #111;
+  font-size: 14px;
+}
+
+.create-board-form-group input,
+.create-board-form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #efefef;
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.create-board-form-group input:focus,
+.create-board-form-group textarea:focus {
+  outline: none;
+  border-color: #e60023;
+}
+
+.create-board-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.create-board-modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #efefef;
+}
+
+.create-board-cancel-btn,
+.create-board-create-btn {
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.create-board-cancel-btn {
+  background-color: #efefef;
+  color: #111;
+}
+
+.create-board-cancel-btn:hover:not(:disabled) {
+  background-color: #e2e2e2;
+}
+
+.create-board-create-btn {
+  background-color: #e60023;
+  color: white;
+}
+
+.create-board-create-btn:hover:not(:disabled) {
+  background-color: #ad081b;
+}
+
+.create-board-cancel-btn:disabled,
+.create-board-create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
