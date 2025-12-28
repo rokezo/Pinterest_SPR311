@@ -18,3 +18,5 @@ public class UpdateProfileDto
     public IFormFile? Avatar { get; set; }
 }
 
+
+
