@@ -2,7 +2,6 @@ using ClonePinterest.API.Data;
 using ClonePinterest.API.DTOs.Auth;
 using ClonePinterest.API.Models;
 using ClonePinterest.API.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -154,72 +153,6 @@ public class AuthController : ControllerBase
             AvatarUrl = user.AvatarUrl,
             Role = user.Role
         });
-    }
-
-    [HttpGet("google")]
-    public IActionResult GoogleLogin()
-    {
-        return Challenge("Google");
-    }
-
-    [HttpGet("google-callback")]
-    public async Task<IActionResult> GoogleCallback()
-    {
-        if (!User.Identity?.IsAuthenticated ?? true)
-        {
-            return Unauthorized(new { message = "Google authentication error" });
-        }
-
-        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-        var picture = User.FindFirst("picture")?.Value;
-
-        if (string.IsNullOrEmpty(email))
-        {
-            return BadRequest(new { message = "Failed to get email from Google" });
-        }
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-        if (user == null)
-        {
-            var username = name ?? email.Split('@')[0];
-            
-            var baseUsername = username;
-            var counter = 1;
-            while (await _context.Users.AnyAsync(u => u.Username == username))
-            {
-                username = $"{baseUsername}{counter}";
-                counter++;
-            }
-
-            user = new User
-            {
-                Email = email,
-                Username = username,
-                PasswordHash = string.Empty,
-                AvatarUrl = picture,
-                Role = "User",
-                Visibility = "Public",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-        }
-        else
-        {
-            if (string.IsNullOrEmpty(user.AvatarUrl) && !string.IsNullOrEmpty(picture))
-            {
-                user.AvatarUrl = picture;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        var token = _jwtService.GenerateToken(user);
-
-        var frontendUrl = "http://localhost:5173";
-        return Redirect($"{frontendUrl}/auth/google-callback?token={token}");
     }
 
     [HttpPut("profile")]

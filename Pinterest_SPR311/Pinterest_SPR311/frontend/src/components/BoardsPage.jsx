@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { boardsService } from "../api/boards";
 import { pinsService } from "../api/pins";
+import { usersService } from "../api/users";
 import PinCard from "./PinCard";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -16,6 +17,7 @@ const BoardsPage = () => {
   const [boards, setBoards] = useState([]);
   const [pins, setPins] = useState([]);
   const [collages, setCollages] = useState([]);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,8 +26,19 @@ const BoardsPage = () => {
       navigate("/");
       return;
     }
+    loadProfile();
     loadData();
   }, [isAuthenticated, navigate, activeTab]);
+
+  const loadProfile = async () => {
+    if (!user?.id) return;
+    try {
+      const data = await usersService.getUserProfile(user.id);
+      setProfile(data);
+    } catch (err) {
+      console.error("Error loading profile:", err);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -282,10 +295,63 @@ const BoardsPage = () => {
         <Sidebar />
         <main className="home-main">
           <div className="boards-page">
-            <div className="boards-header">
-              <h1>Мої дошки</h1>
-              <p className="boards-subtitle">{getSubtitle()}</p>
-            </div>
+            {profile && (
+              <div className="boards-profile-header">
+                <div className="boards-profile-avatar">
+                  {profile.avatarUrl ? (
+                    <img
+                      src={
+                        profile.avatarUrl?.startsWith("http") ||
+                        profile.avatarUrl?.startsWith("//")
+                          ? profile.avatarUrl
+                          : `http://localhost:5001${profile.avatarUrl}`
+                      }
+                      alt={profile.username}
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="boards-profile-avatar-placeholder"
+                    style={{ display: profile.avatarUrl ? "none" : "flex" }}
+                  >
+                    {profile.username?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                </div>
+                <div className="boards-profile-info">
+                  <h1 className="boards-profile-username">{profile.username}</h1>
+                  {profile.bio && (
+                    <p className="boards-profile-bio">{profile.bio}</p>
+                  )}
+                  <div className="boards-profile-stats">
+                    <div className="boards-profile-stat">
+                      <span className="boards-profile-stat-value">
+                        {profile.pinsCount || 0}
+                      </span>
+                      <span className="boards-profile-stat-label">пінів</span>
+                    </div>
+                    <div className="boards-profile-stat">
+                      <span className="boards-profile-stat-value">
+                        {profile.followersCount || 0}
+                      </span>
+                      <span className="boards-profile-stat-label">
+                        підписників
+                      </span>
+                    </div>
+                    <div className="boards-profile-stat">
+                      <span className="boards-profile-stat-value">
+                        {profile.followingCount || 0}
+                      </span>
+                      <span className="boards-profile-stat-label">
+                        підписок
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="boards-tabs">
               <button

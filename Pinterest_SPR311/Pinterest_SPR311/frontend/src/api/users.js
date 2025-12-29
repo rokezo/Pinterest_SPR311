@@ -29,5 +29,19 @@ export const usersService = {
     const response = await api.delete(`/users/${userId}/follow`);
     return response.data;
   },
+
+  getFollowers: async (userId, page = 1, pageSize = 50) => {
+    const response = await api.get(`/users/${userId}/followers`, {
+      params: { page, pageSize },
+    });
+    return response.data;
+  },
+
+  getFollowing: async (userId, page = 1, pageSize = 50) => {
+    const response = await api.get(`/users/${userId}/following`, {
+      params: { page, pageSize },
+    });
+    return response.data;
+  },
 };
 

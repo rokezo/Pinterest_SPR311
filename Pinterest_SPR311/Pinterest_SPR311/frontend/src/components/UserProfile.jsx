@@ -5,6 +5,7 @@ import { usersService } from "../api/users";
 import PinCard from "./PinCard";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import FollowersModal from "./FollowersModal";
 import "./UserProfile.css";
 import "./PinGrid.css";
 
@@ -19,6 +20,8 @@ const UserProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [following, setFollowing] = useState(false);
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -164,11 +167,17 @@ const UserProfile = () => {
                     <span className="user-profile-stat-value">{profile.pinsCount}</span>
                     <span className="user-profile-stat-label">пінів</span>
                   </div>
-                  <div className="user-profile-stat">
+                  <div
+                    className="user-profile-stat clickable"
+                    onClick={() => setFollowersModalOpen(true)}
+                  >
                     <span className="user-profile-stat-value">{profile.followersCount}</span>
                     <span className="user-profile-stat-label">підписників</span>
                   </div>
-                  <div className="user-profile-stat">
+                  <div
+                    className="user-profile-stat clickable"
+                    onClick={() => setFollowingModalOpen(true)}
+                  >
                     <span className="user-profile-stat-value">{profile.followingCount}</span>
                     <span className="user-profile-stat-label">підписок</span>
                   </div>
@@ -233,6 +242,18 @@ const UserProfile = () => {
           </div>
         </main>
       </div>
+      <FollowersModal
+        isOpen={followersModalOpen}
+        onClose={() => setFollowersModalOpen(false)}
+        userId={parseInt(id)}
+        type="followers"
+      />
+      <FollowersModal
+        isOpen={followingModalOpen}
+        onClose={() => setFollowingModalOpen(false)}
+        userId={parseInt(id)}
+        type="following"
+      />
     </div>
   );
 };

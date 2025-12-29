@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace ClonePinterest.API.Controllers;
 
@@ -102,6 +103,7 @@ public class CommentsController : ControllerBase
             await _context.SaveChangesAsync();
 
             await _context.Entry(comment).Reference(c => c.User).LoadAsync();
+            await _context.Entry(pin).Reference(p => p.Owner).LoadAsync();
 
             var commentDto = new CommentDto
             {
@@ -114,6 +116,35 @@ public class CommentsController : ControllerBase
                 CreatedAt = comment.CreatedAt,
                 IsOwner = true
             };
+
+            if (pin.OwnerId != userId)
+            {
+                try
+                {
+                    var notification = new Notification
+                    {
+                        UserId = pin.OwnerId,
+                        Type = "Comment",
+                        Payload = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            pinId = pin.Id,
+                            commentId = comment.Id,
+                            userId = userId,
+                            username = comment.User.Username,
+                            avatarUrl = comment.User.AvatarUrl,
+                            pinTitle = pin.Title
+                        }),
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(notification);
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Не вдалося створити сповіщення про коментар");
+                }
+            }
 
             _logger.LogInformation("Comment created: {CommentId} by user {UserId} on pin {PinId}", comment.Id, userId, pinId);
 

@@ -2,13 +2,20 @@ using ClonePinterest.API.Data;
 using ClonePinterest.API.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Настройка Data Protection для работы в development
+builder.Services.AddDataProtection()
+    .SetApplicationName("ClonePinterest")
+    .PersistKeysToFileSystem(new System.IO.DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")));
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -30,9 +37,8 @@ using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["SecretKey"];
-var googleSettings = builder.Configuration.GetSection("Google");
 
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -40,10 +46,21 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    if (builder.Environment.IsDevelopment())
+    {
+        // В development используем Unspecified дляі работы с cross-site redirect
+        options.Cookie.SameSite = SameSiteMode.Unspecified;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    }
+    else
+    {
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
     options.Cookie.HttpOnly = true;
     options.Cookie.Name = ".AspNetCore.Cookies";
+    options.Cookie.Path = "/";
+    options.Cookie.Domain = null;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.SlidingExpiration = true;
 })
@@ -60,36 +77,6 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
     };
 });
-
-// Регистрируем Google OAuth только если он настроен
-var clientId = googleSettings["ClientId"] ?? string.Empty;
-var clientSecret = googleSettings["ClientSecret"] ?? string.Empty;
-
-if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret) && 
-    clientId != "YOUR_GOOGLE_CLIENT_ID" && clientSecret != "YOUR_GOOGLE_CLIENT_SECRET")
-{
-    builder.Services.AddAuthentication()
-        .AddGoogle("Google", options =>
-        {
-            options.ClientId = clientId;
-            options.ClientSecret = clientSecret;
-            options.CallbackPath = "/api/Auth/google-callback";
-            options.SaveTokens = true;
-            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            
-            if (builder.Environment.IsDevelopment())
-            {
-                options.CorrelationCookie.SameSite = SameSiteMode.None;
-                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.None;
-            }
-            else
-            {
-                options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-            }
-            options.CorrelationCookie.HttpOnly = true;
-        });
-}
 
 builder.Services.AddAuthorization();
 
@@ -157,9 +144,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseRouting();
-
 app.UseCors("AllowReactApp");
+
+app.UseRouting();
 
 if (app.Environment.IsProduction())
 {

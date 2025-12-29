@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { commentsService } from "../api/comments";
 import "./CommentsSection.css";
 
 const CommentsSection = ({ pinId, initialComments = [] }) => {
   const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
   const [comments, setComments] = useState(initialComments);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,6 +75,11 @@ const CommentsSection = ({ pinId, initialComments = [] }) => {
         err.response?.data?.message || "Не вдалося видалити коментар. Спробуйте ще раз."
       );
     }
+  };
+
+  const handleUsernameClick = (userId, e) => {
+    e.stopPropagation();
+    navigate(`/user/${userId}`);
   };
 
   const formatDate = (dateString) => {
@@ -172,7 +179,12 @@ const CommentsSection = ({ pinId, initialComments = [] }) => {
               </div>
               <div className="comment-content">
                 <div className="comment-header">
-                  <span className="comment-username">{comment.username}</span>
+                  <span
+                    className="comment-username"
+                    onClick={(e) => handleUsernameClick(comment.userId, e)}
+                  >
+                    {comment.username}
+                  </span>
                   <span className="comment-date">{formatDate(comment.createdAt)}</span>
                 </div>
                 <p className="comment-text">{comment.text}</p>
@@ -194,4 +206,3 @@ const CommentsSection = ({ pinId, initialComments = [] }) => {
 };
 
 export default CommentsSection;
-

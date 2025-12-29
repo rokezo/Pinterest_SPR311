@@ -104,6 +104,15 @@
   flex-direction: column;
 }
 
+.user-profile-stat.clickable {
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.user-profile-stat.clickable:hover {
+  opacity: 0.7;
+}
+
 .user-profile-stat-value {
   font-size: 20px;
   font-weight: 600;

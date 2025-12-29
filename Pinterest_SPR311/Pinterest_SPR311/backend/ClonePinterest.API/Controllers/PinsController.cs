@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Security.Claims;
 using System.Linq.Expressions;
+using System;
 
 namespace ClonePinterest.API.Controllers;
 
@@ -234,7 +235,13 @@ public class PinsController : ControllerBase
 
             if (!string.IsNullOrWhiteSpace(query))
             {
-                var searchTerm = query.Trim().ToLower();
+                var searchTerm = query.Trim();
+                var searchTermLower = searchTerm.ToLowerInvariant();
+                
+                var searchWords = searchTerm.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(w => w.Trim())
+                    .Where(w => w.Length > 0)
+                    .ToList();
                 
                 var categoryMapping = new Dictionary<string, string[]>
                 {
@@ -252,9 +259,9 @@ public class PinsController : ControllerBase
                     { "music", new[] { "музичн", "концерт", "інструмент", "атмосфер", "ритм" } }
                 };
 
-                if (categoryMapping.ContainsKey(searchTerm))
+                if (categoryMapping.ContainsKey(searchTermLower))
                 {
-                    var searchTerms = categoryMapping[searchTerm];
+                    var searchTerms = categoryMapping[searchTermLower];
                     var firstTerm = searchTerms[0];
                     dbQuery = dbQuery.Where(p => 
                         (p.Title != null && p.Title.Contains(firstTerm)) ||
@@ -263,10 +270,28 @@ public class PinsController : ControllerBase
                 }
                 else
                 {
-                    dbQuery = dbQuery.Where(p => 
-                        (p.Title != null && p.Title.Contains(searchTerm)) || 
-                        (p.Description != null && p.Description.Contains(searchTerm))
-                    );
+                    var allPins = await dbQuery.ToListAsync();
+                    var filteredPins = allPins.Where(p => 
+                        searchWords.Any(word => 
+                            (p.Title != null && p.Title.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0) || 
+                            (p.Description != null && p.Description.IndexOf(word, StringComparison.OrdinalIgnoreCase) >= 0)
+                        )
+                    ).Select(p => p.Id).ToList();
+                    
+                    if (filteredPins.Count > 0)
+                    {
+                        dbQuery = _context.Pins
+                            .Include(p => p.Owner)
+                            .Include(p => p.Likes)
+                            .Include(p => p.Comments)
+                            .Where(p => !p.IsHidden && !p.IsReported)
+                            .Where(p => p.Visibility == "Public" || (currentUserId.HasValue && p.OwnerId == currentUserId.Value))
+                            .Where(p => filteredPins.Contains(p.Id));
+                    }
+                    else
+                    {
+                        dbQuery = dbQuery.Where(p => false);
+                    }
                 }
             }
 

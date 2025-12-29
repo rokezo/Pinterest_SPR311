@@ -159,6 +159,13 @@
   font-weight: 600;
   color: #111;
   font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.comment-username:hover {
+  color: #e60023;
+  text-decoration: underline;
 }
 
 .comment-date {
@@ -182,6 +189,7 @@
   cursor: pointer;
   padding: 0;
   transition: color 0.2s;
+  margin-top: 4px;
 }
 
 .comment-delete-btn:hover {

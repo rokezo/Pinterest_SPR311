@@ -258,6 +258,33 @@ public class UsersController : ControllerBase
             _context.Follows.Add(follow);
             await _context.SaveChangesAsync();
 
+            try
+            {
+                var follower = await _context.Users.FindAsync(followerId);
+                if (follower != null)
+                {
+                    var notification = new Notification
+                    {
+                        UserId = id,
+                        Type = "Follow",
+                        Payload = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            userId = followerId,
+                            username = follower.Username,
+                            avatarUrl = follower.AvatarUrl
+                        }),
+                        IsRead = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Notifications.Add(notification);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Не вдалося створити сповіщення про підписку");
+            }
+
             _logger.LogInformation("User {FollowerId} followed user {FollowingId}", followerId, id);
 
             return Ok(new { message = "Successfully followed user" });
@@ -300,6 +327,134 @@ public class UsersController : ControllerBase
         {
             _logger.LogError(ex, "Error unfollowing user {UserId}", id);
             return StatusCode(500, new { message = "Error unfollowing user" });
+        }
+    }
+
+    [HttpGet("{id}/followers")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFollowers(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        try
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 50;
+
+            int? currentUserId = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    currentUserId = userId;
+                }
+            }
+
+            var query = _context.Follows
+                .Include(f => f.Follower)
+                .Where(f => f.FollowingId == id)
+                .OrderByDescending(f => f.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+            var follows = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var followerIds = follows.Select(f => f.Follower.Id).ToList();
+            var currentUserFollowingIds = currentUserId.HasValue && followerIds.Any()
+                ? await _context.Follows
+                    .Where(fl => fl.FollowerId == currentUserId.Value && followerIds.Contains(fl.FollowingId))
+                    .Select(fl => fl.FollowingId)
+                    .ToListAsync()
+                : new List<int>();
+
+            var userDtos = follows.Select(f => new UserListItemDto
+            {
+                Id = f.Follower.Id,
+                Username = f.Follower.Username,
+                Bio = f.Follower.Bio,
+                AvatarUrl = f.Follower.AvatarUrl,
+                IsFollowing = currentUserFollowingIds.Contains(f.Follower.Id),
+                IsOwnProfile = currentUserId.HasValue && f.Follower.Id == currentUserId.Value
+            }).ToList();
+
+            return Ok(new
+            {
+                users = userDtos,
+                totalCount,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting followers for user {UserId}", id);
+            return StatusCode(500, new { message = "Error getting followers" });
+        }
+    }
+
+    [HttpGet("{id}/following")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFollowing(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        try
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 50;
+
+            int? currentUserId = null;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    currentUserId = userId;
+                }
+            }
+
+            var query = _context.Follows
+                .Include(f => f.Following)
+                .Where(f => f.FollowerId == id)
+                .OrderByDescending(f => f.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+            var follows = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var followingIds = follows.Select(f => f.Following.Id).ToList();
+            var currentUserFollowingIds = currentUserId.HasValue && followingIds.Any()
+                ? await _context.Follows
+                    .Where(fl => fl.FollowerId == currentUserId.Value && followingIds.Contains(fl.FollowingId))
+                    .Select(fl => fl.FollowingId)
+                    .ToListAsync()
+                : new List<int>();
+
+            var userDtos = follows.Select(f => new UserListItemDto
+            {
+                Id = f.Following.Id,
+                Username = f.Following.Username,
+                Bio = f.Following.Bio,
+                AvatarUrl = f.Following.AvatarUrl,
+                IsFollowing = currentUserFollowingIds.Contains(f.Following.Id),
+                IsOwnProfile = currentUserId.HasValue && f.Following.Id == currentUserId.Value
+            }).ToList();
+
+            return Ok(new
+            {
+                users = userDtos,
+                totalCount,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting following for user {UserId}", id);
+            return StatusCode(500, new { message = "Error getting following" });
         }
     }
 }
