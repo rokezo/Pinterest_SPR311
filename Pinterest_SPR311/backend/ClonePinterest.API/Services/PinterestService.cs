@@ -7,13 +7,15 @@ public class PinterestService : IPinterestService
 {
     private readonly HttpClient _httpClient;
     private readonly ILogger<PinterestService> _logger;
+    private readonly ITranslationService _translationService;
     private readonly string _pexelsApiKey;
     private const string PexelsBaseUrl = "https://api.pexels.com/v1";
 
-    public PinterestService(HttpClient httpClient, ILogger<PinterestService> logger, IConfiguration configuration)
+    public PinterestService(HttpClient httpClient, ILogger<PinterestService> logger, IConfiguration configuration, ITranslationService translationService)
     {
         _httpClient = httpClient;
         _logger = logger;
+        _translationService = translationService;
         _pexelsApiKey = configuration["Pexels:ApiKey"] ?? string.Empty;
         
         if (!string.IsNullOrEmpty(_pexelsApiKey))
@@ -31,14 +33,30 @@ public class PinterestService : IPinterestService
                 return await GetTrendingImagesAsync(perPage);
             }
 
-            var url = $"{PexelsBaseUrl}/search?query={Uri.EscapeDataString(query)}&page={page}&per_page={perPage}";
+            var translatedQuery = await _translationService.TranslateToEnglishAsync(query);
+            _logger.LogInformation("Searching for '{OriginalQuery}' translated to '{TranslatedQuery}'", query, translatedQuery);
+            
+            if (string.IsNullOrWhiteSpace(translatedQuery))
+            {
+                _logger.LogWarning("Empty translated query for '{Query}'", query);
+                return new List<PinterestImage>();
+            }
+
+            var isUkrainian = _translationService.IsUkrainianText(query);
+            if (isUkrainian && translatedQuery.ToLower() == query.ToLower().Trim())
+            {
+                _logger.LogWarning("Translation failed for Ukrainian query '{Query}', returning empty", query);
+                return new List<PinterestImage>();
+            }
+            
+            var url = $"{PexelsBaseUrl}/search?query={Uri.EscapeDataString(translatedQuery)}&page={page}&per_page={perPage}";
             
             var response = await _httpClient.GetAsync(url);
             
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Pexels API returned {StatusCode}", response.StatusCode);
-                return GetFallbackImages(query, perPage);
+                _logger.LogWarning("Pexels API returned {StatusCode} for query '{Query}'", response.StatusCode, translatedQuery);
+                return new List<PinterestImage>();
             }
 
             var json = await response.Content.ReadAsStringAsync();
@@ -47,9 +65,18 @@ public class PinterestService : IPinterestService
                 PropertyNameCaseInsensitive = true
             });
 
-            if (result?.Photos == null || result.Photos.Count == 0)
+            if (result == null)
             {
-                return GetFallbackImages(query, perPage);
+                _logger.LogWarning("Failed to deserialize Pexels response for query '{Query}'", translatedQuery);
+                return new List<PinterestImage>();
+            }
+
+            _logger.LogInformation("Pexels response: TotalResults={TotalResults}, Photos.Count={Count}", result.TotalResults, result.Photos?.Count ?? 0);
+
+            if (result.Photos == null || result.Photos.Count == 0)
+            {
+                _logger.LogWarning("No results found for query '{Query}' (TotalResults: {TotalResults})", translatedQuery, result.TotalResults);
+                return new List<PinterestImage>();
             }
 
             return result.Photos.Select(p => new PinterestImage
@@ -67,8 +94,8 @@ public class PinterestService : IPinterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching images from Pexels");
-            return GetFallbackImages(query, perPage);
+            _logger.LogError(ex, "Error fetching images from Pexels for query '{Query}'", query);
+            return new List<PinterestImage>();
         }
     }
 
@@ -83,18 +110,47 @@ public class PinterestService : IPinterestService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Pexels API returned {StatusCode} for curated images", response.StatusCode);
-                return GetFallbackImages("trending", count);
+                return new List<PinterestImage>();
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<PexelsSearchResponse>(json, new JsonSerializerOptions
+            
+            if (string.IsNullOrWhiteSpace(json))
             {
-                PropertyNameCaseInsensitive = true
-            });
+                _logger.LogWarning("Empty response from Pexels API for curated images");
+                return new List<PinterestImage>();
+            }
 
-            if (result?.Photos == null || result.Photos.Count == 0)
+            PexelsSearchResponse? result = null;
+            try
             {
-                return GetFallbackImages("trending", count);
+                result = JsonSerializer.Deserialize<PexelsSearchResponse>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch (JsonException jsonEx)
+            {
+                _logger.LogError(jsonEx, "Failed to deserialize Pexels response. JSON length: {Length}, First 500 chars: {Preview}", 
+                    json.Length, json.Length > 500 ? json.Substring(0, 500) : json);
+                return new List<PinterestImage>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error deserializing Pexels response");
+                return new List<PinterestImage>();
+            }
+
+            if (result == null)
+            {
+                _logger.LogWarning("Deserialized result is null for curated images");
+                return new List<PinterestImage>();
+            }
+
+            if (result.Photos == null || result.Photos.Count == 0)
+            {
+                _logger.LogWarning("No photos in Pexels response for curated images");
+                return new List<PinterestImage>();
             }
 
             return result.Photos.Select(p => new PinterestImage
@@ -113,7 +169,7 @@ public class PinterestService : IPinterestService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fetching trending images from Pexels");
-            return GetFallbackImages("trending", count);
+            return new List<PinterestImage>();
         }
     }
 

@@ -20,6 +20,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<PinTag> PinTags { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Report> Reports { get; set; }
+    public DbSet<Follow> Follows { get; set; }
+    public DbSet<View> Views { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -53,6 +55,11 @@ public class ApplicationDbContext : DbContext
         // Унікальна пара PinTag (Pin + Tag)
         modelBuilder.Entity<PinTag>()
             .HasIndex(pt => new { pt.PinId, pt.TagId })
+            .IsUnique();
+
+        // Унікальна пара Follow (Follower + Following)
+        modelBuilder.Entity<Follow>()
+            .HasIndex(f => new { f.FollowerId, f.FollowingId })
             .IsUnique();
     }
 }

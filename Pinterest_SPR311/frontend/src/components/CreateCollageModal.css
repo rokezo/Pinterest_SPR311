@@ -1,0 +1,361 @@
+.create-collage-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.create-collage-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.create-collage-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #8e8e8e;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  z-index: 1;
+}
+
+.create-collage-modal-close:hover {
+  background-color: #efefef;
+}
+
+.create-collage-modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #efefef;
+}
+
+.create-collage-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111;
+}
+
+.create-collage-modal-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.create-collage-modal-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.create-collage-error {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.create-collage-layouts {
+  margin-bottom: 24px;
+}
+
+.create-collage-layouts label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.create-collage-layout-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.create-collage-layout-btn {
+  padding: 8px 16px;
+  border: 2px solid #efefef;
+  border-radius: 20px;
+  background: white;
+  color: #111;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.create-collage-layout-btn:hover {
+  border-color: #e60023;
+}
+
+.create-collage-layout-btn.active {
+  background: #e60023;
+  color: white;
+  border-color: #e60023;
+}
+
+.create-collage-upload-area {
+  border: 2px dashed #d1d1d1;
+  border-radius: 16px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 24px;
+  background: #fafafa;
+}
+
+.create-collage-upload-area:hover {
+  border-color: #e60023;
+  background: #fff5f5;
+}
+
+.create-collage-upload-area.dragging {
+  border-color: #e60023;
+  background: #fff5f5;
+}
+
+.create-collage-upload-area svg {
+  color: #8e8e8e;
+  margin-bottom: 16px;
+}
+
+.create-collage-upload-area p {
+  margin: 8px 0;
+  color: #111;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.create-collage-upload-hint {
+  font-size: 14px;
+  color: #8e8e8e;
+  font-weight: normal;
+}
+
+.create-collage-images-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.create-collage-image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #efefef;
+}
+
+.create-collage-image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.create-collage-remove-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.create-collage-remove-btn:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.create-collage-preview-section {
+  margin-bottom: 24px;
+}
+
+.create-collage-preview-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 12px;
+}
+
+.collage-preview {
+  border: 2px solid #efefef;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafafa;
+  aspect-ratio: 1;
+  display: grid;
+  gap: 2px;
+}
+
+.collage-preview-2x2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.collage-preview-1\+2 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.collage-preview-1\+2 .collage-preview-item:first-child {
+  grid-row: 1 / 3;
+}
+
+.collage-preview-2\+1 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.collage-preview-2\+1 .collage-preview-item:last-child {
+  grid-row: 1 / 3;
+}
+
+.collage-preview-3x1 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 1fr;
+}
+
+.collage-preview-1x3 {
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.collage-preview-item {
+  overflow: hidden;
+  background: #efefef;
+}
+
+.collage-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.create-collage-form-group {
+  margin-bottom: 20px;
+}
+
+.create-collage-form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.create-collage-form-group input,
+.create-collage-form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #efefef;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.create-collage-form-group input:focus,
+.create-collage-form-group textarea:focus {
+  outline: none;
+  border-color: #e60023;
+}
+
+.create-collage-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.create-collage-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid #efefef;
+}
+
+.create-collage-cancel-btn,
+.create-collage-create-btn {
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.create-collage-cancel-btn {
+  background: #efefef;
+  color: #111;
+}
+
+.create-collage-cancel-btn:hover:not(:disabled) {
+  background: #e2e2e2;
+}
+
+.create-collage-create-btn {
+  background: #e60023;
+  color: white;
+}
+
+.create-collage-create-btn:hover:not(:disabled) {
+  background: #ad081b;
+}
+
+.create-collage-cancel-btn:disabled,
+.create-collage-create-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .create-collage-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .create-collage-modal-content {
+    padding: 16px;
+  }
+}

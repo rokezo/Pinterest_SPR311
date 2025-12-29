@@ -23,11 +23,12 @@ const PinGrid = () => {
   const loadPins = async (pageNum = 1) => {
     try {
       setLoading(true)
+      setError(null)
       let response
       if (searchQuery.trim()) {
         response = await pinsService.searchPins(searchQuery, pageNum, 20)
       } else {
-        response = await pinsService.getPins(pageNum, 20, true)
+        response = await pinsService.getPins(pageNum, 20, false)
       }
       if (pageNum === 1) {
         setPins(response.pins || [])
@@ -37,8 +38,14 @@ const PinGrid = () => {
       setHasMore(pageNum < (response.totalPages || 1))
       setPage(pageNum)
     } catch (err) {
-      setError('Failed to load pins')
-      console.error(err)
+      console.error('Error loading pins:', err)
+      // Если это первая загрузка и нет пинов, показываем пустой список вместо ошибки
+      if (pageNum === 1) {
+        setPins([])
+        setError(null)
+      } else {
+        setError('Не вдалося завантажити піни')
+      }
     } finally {
       setLoading(false)
     }
@@ -58,6 +65,29 @@ const PinGrid = () => {
     return (
       <div className="pin-grid-loading">
         <div className="loading-spinner"></div>
+      </div>
+    )
+  }
+
+  if (pins.length === 0 && !loading && searchQuery.trim()) {
+    return (
+      <div className="pin-grid-empty">
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ marginBottom: '16px', color: '#8e8e8e' }}
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <h2>Результати не знайдено</h2>
+        <p>Спробуйте інший запит або перевірте правильність написання</p>
       </div>
     )
   }
@@ -229,7 +259,7 @@ const PinGrid = () => {
             onClick={loadMore}
             disabled={loading}
           >
-            {loading ? 'Loading...' : 'Load more'}
+            {loading ? 'Завантаження...' : 'Завантажити ще'}
           </button>
         </div>
       )}

@@ -1,3 +1,5 @@
+using ClonePinterest.API.DTOs.Comment;
+
 namespace ClonePinterest.API.DTOs.Pin;
 
 public class PinDetailDto
@@ -18,5 +20,6 @@ public class PinDetailDto
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
     public bool IsLiked { get; set; } // чи лайкнув поточний користувач
+    public List<CommentDto>? Comments { get; set; }
 }
 

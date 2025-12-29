@@ -1,0 +1,240 @@
+.save-pin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.save-pin-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.save-pin-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #8e8e8e;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  z-index: 1;
+}
+
+.save-pin-modal-close:hover {
+  background-color: #efefef;
+}
+
+.save-pin-modal-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #efefef;
+}
+
+.save-pin-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111;
+}
+
+.save-pin-modal-content {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.save-pin-error {
+  background-color: #fee;
+  color: #c33;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.save-pin-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.save-pin-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #efefef;
+  border-top: 3px solid #e60023;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.save-pin-create-board-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: #efefef;
+  border: none;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.save-pin-create-board-btn:hover {
+  background-color: #e2e2e2;
+}
+
+.save-pin-create-board-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.save-pin-boards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.save-pin-boards-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #8e8e8e;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+
+.save-pin-board-item {
+  width: 100%;
+  padding: 12px;
+  background: white;
+  border: 2px solid #efefef;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.save-pin-board-item:hover:not(:disabled) {
+  border-color: #e60023;
+  background-color: #fff5f5;
+}
+
+.save-pin-board-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.save-pin-board-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #efefef;
+  flex-shrink: 0;
+}
+
+.save-pin-board-cover-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 100%;
+  height: 100%;
+  gap: 1px;
+}
+
+.save-pin-board-cover-item {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #efefef;
+}
+
+.save-pin-board-cover-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.save-pin-board-cover-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8e8e8e;
+}
+
+.save-pin-board-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.save-pin-board-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-pin-board-count {
+  font-size: 14px;
+  color: #8e8e8e;
+}
+
+.save-pin-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: #8e8e8e;
+}
+
+.save-pin-empty p {
+  margin: 8px 0;
+}
+
+.save-pin-empty-hint {
+  font-size: 14px;
+}
+

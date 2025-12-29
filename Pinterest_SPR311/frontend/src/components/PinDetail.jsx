@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { pinsService } from "../api/pins";
+import SavePinModal from "./SavePinModal";
+import CommentsSection from "./CommentsSection";
 import Navbar from "./Navbar";
 import "./PinDetail.css";
 
@@ -11,6 +14,8 @@ const PinDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (id) {
@@ -28,7 +33,7 @@ const PinDetail = () => {
       const errorMessage =
         err.response?.data?.message ||
         err.message ||
-        "Failed to load pin";
+        "Не вдалося завантажити пін";
       setError(errorMessage);
       console.error("Error loading pin:", err);
       console.error("Error response:", err.response);
@@ -53,8 +58,8 @@ const PinDetail = () => {
       <>
         <Navbar />
         <div className="pin-detail-error">
-          <p>{error || "Pin not found"}</p>
-          <button onClick={() => navigate("/")}>Go back</button>
+          <p>{error || "Пін не знайдено"}</p>
+          <button onClick={() => navigate("/")}>Повернутися</button>
         </div>
       </>
     );
@@ -63,7 +68,7 @@ const PinDetail = () => {
   const imageUrl =
     pin.imageUrl?.startsWith("http") || pin.imageUrl?.startsWith("//")
       ? pin.imageUrl
-      : `http://localhost:5000${pin.imageUrl}`;
+      : `http://localhost:5001${pin.imageUrl}`;
 
   const handleDownload = async (e) => {
     e.stopPropagation();
@@ -71,16 +76,17 @@ const PinDetail = () => {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      const fileName = pin.title?.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'image';
+      const fileName =
+        pin.title?.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "image";
       link.download = `${fileName}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Error downloading image:', err);
+      console.error("Error downloading image:", err);
     }
   };
 
@@ -109,10 +115,20 @@ const PinDetail = () => {
               </button>
             </div>
             <div className="pin-detail-actions">
-              <button className="pin-detail-save-btn">Save</button>
-              <button className="pin-detail-download-btn" onClick={handleDownload}>
+              {isAuthenticated && (
+                <button
+                  className="pin-detail-save-btn"
+                  onClick={() => setSaveModalOpen(true)}
+                >
+                  Зберегти
+                </button>
+              )}
+              <button
+                className="pin-detail-download-btn"
+                onClick={handleDownload}
+              >
                 <span className="pin-detail-download-icon">⬇</span>
-                Download
+                Завантажити
               </button>
             </div>
             <h1 className="pin-detail-title">{pin.title}</h1>
@@ -120,7 +136,11 @@ const PinDetail = () => {
               <p className="pin-detail-description">{pin.description}</p>
             )}
             <div className="pin-detail-meta">
-              <div className="pin-detail-author">
+              <div
+                className="pin-detail-author"
+                onClick={() => navigate(`/user/${pin.ownerId}`)}
+                style={{ cursor: "pointer" }}
+              >
                 {pin.ownerAvatarUrl ? (
                   <img
                     src={pin.ownerAvatarUrl}
@@ -170,16 +190,29 @@ const PinDetail = () => {
                   rel="noopener noreferrer"
                   className="pin-detail-link-btn"
                 >
-                  Visit site
+                  Відвідати сайт
                 </a>
               </div>
             )}
+
+            <CommentsSection
+              pinId={pin.id}
+              initialComments={pin.comments || []}
+            />
           </div>
         </div>
       </div>
+
+      <SavePinModal
+        isOpen={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        pinId={pin?.id}
+        onSuccess={() => {
+          console.log("Pin saved successfully");
+        }}
+      />
     </>
   );
 };
 
 export default PinDetail;
-

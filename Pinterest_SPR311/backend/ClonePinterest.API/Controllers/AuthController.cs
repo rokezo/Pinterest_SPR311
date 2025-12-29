@@ -2,7 +2,6 @@ using ClonePinterest.API.Data;
 using ClonePinterest.API.DTOs.Auth;
 using ClonePinterest.API.Models;
 using ClonePinterest.API.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -41,49 +40,62 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
-        if (!ModelState.IsValid)
+        try
         {
-            return BadRequest(ModelState);
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for registration");
+                return BadRequest(ModelState);
+            }
+
+            // Перевірка чи існує користувач з таким email
+            if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
+            {
+                _logger.LogWarning("Registration attempt with existing email: {Email}", registerDto.Email);
+                return BadRequest(new { message = "User with this email already exists" });
+            }
+
+            // Перевірка чи існує користувач з таким username
+            if (await _context.Users.AnyAsync(u => u.Username == registerDto.Username))
+            {
+                _logger.LogWarning("Registration attempt with existing username: {Username}", registerDto.Username);
+                return BadRequest(new { message = "User with this username already exists" });
+            }
+
+            // Створення нового користувача
+            var user = new User
+            {
+                Email = registerDto.Email,
+                Username = registerDto.Username,
+                PasswordHash = _passwordService.HashPassword(registerDto.Password),
+                Role = "User",
+                Visibility = "Public",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User registered successfully: {Username} (ID: {UserId})", user.Username, user.Id);
+
+            // Генерація токену
+            var token = _jwtService.GenerateToken(user);
+
+            var response = new AuthResponseDto
+            {
+                Token = token,
+                UserId = user.Id,
+                Username = user.Username,
+                Email = user.Email
+            };
+
+            return Ok(response);
         }
-
-        // Перевірка чи існує користувач з таким email
-        if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
+        catch (Exception ex)
         {
-            return BadRequest(new { message = "User with this email already exists" });
+            _logger.LogError(ex, "Error during user registration");
+            return StatusCode(500, new { message = "An error occurred during registration. Please try again." });
         }
-
-        // Перевірка чи існує користувач з таким username
-        if (await _context.Users.AnyAsync(u => u.Username == registerDto.Username))
-        {
-            return BadRequest(new { message = "User with this username already exists" });
-        }
-
-        // Створення нового користувача
-        var user = new User
-        {
-            Email = registerDto.Email,
-            Username = registerDto.Username,
-            PasswordHash = _passwordService.HashPassword(registerDto.Password),
-            Role = "User",
-            Visibility = "Public",
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        // Генерація токену
-        var token = _jwtService.GenerateToken(user);
-
-        var response = new AuthResponseDto
-        {
-            Token = token,
-            UserId = user.Id,
-            Username = user.Username,
-            Email = user.Email
-        };
-
-        return Ok(response);
     }
 
     [HttpPost("login")]
@@ -141,72 +153,6 @@ public class AuthController : ControllerBase
             AvatarUrl = user.AvatarUrl,
             Role = user.Role
         });
-    }
-
-    [HttpGet("google")]
-    public IActionResult GoogleLogin()
-    {
-        return Challenge("Google");
-    }
-
-    [HttpGet("google-callback")]
-    public async Task<IActionResult> GoogleCallback()
-    {
-        if (!User.Identity?.IsAuthenticated ?? true)
-        {
-            return Unauthorized(new { message = "Google authentication error" });
-        }
-
-        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-        var name = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
-        var picture = User.FindFirst("picture")?.Value;
-
-        if (string.IsNullOrEmpty(email))
-        {
-            return BadRequest(new { message = "Failed to get email from Google" });
-        }
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-        if (user == null)
-        {
-            var username = name ?? email.Split('@')[0];
-            
-            var baseUsername = username;
-            var counter = 1;
-            while (await _context.Users.AnyAsync(u => u.Username == username))
-            {
-                username = $"{baseUsername}{counter}";
-                counter++;
-            }
-
-            user = new User
-            {
-                Email = email,
-                Username = username,
-                PasswordHash = string.Empty,
-                AvatarUrl = picture,
-                Role = "User",
-                Visibility = "Public",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-        }
-        else
-        {
-            if (string.IsNullOrEmpty(user.AvatarUrl) && !string.IsNullOrEmpty(picture))
-            {
-                user.AvatarUrl = picture;
-                await _context.SaveChangesAsync();
-            }
-        }
-
-        var token = _jwtService.GenerateToken(user);
-
-        var frontendUrl = "http://localhost:5173";
-        return Redirect($"{frontendUrl}/auth/google-callback?token={token}");
     }
 
     [HttpPut("profile")]

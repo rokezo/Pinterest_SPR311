@@ -2,28 +2,43 @@ using ClonePinterest.API.Data;
 using ClonePinterest.API.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Настройка Data Protection для работы в development
+builder.Services.AddDataProtection()
+    .SetApplicationName("ClonePinterest")
+    .PersistKeysToFileSystem(new System.IO.DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")));
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 using (var scope = builder.Services.BuildServiceProvider().CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database.");
+        // Продолжаем работу даже если миграция не удалась
+    }
 }
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["SecretKey"];
-var googleSettings = builder.Configuration.GetSection("Google");
 
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -31,10 +46,21 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    if (builder.Environment.IsDevelopment())
+    {
+        // В development используем Unspecified дляі работы с cross-site redirect
+        options.Cookie.SameSite = SameSiteMode.Unspecified;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+    }
+    else
+    {
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
     options.Cookie.HttpOnly = true;
     options.Cookie.Name = ".AspNetCore.Cookies";
+    options.Cookie.Path = "/";
+    options.Cookie.Domain = null;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.SlidingExpiration = true;
 })
@@ -50,34 +76,6 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!))
     };
-})
-.AddGoogle("Google", options =>
-{
-    var clientId = googleSettings["ClientId"] ?? string.Empty;
-    var clientSecret = googleSettings["ClientSecret"] ?? string.Empty;
-    
-    if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
-    {
-        throw new InvalidOperationException("Google ClientId and ClientSecret must be configured in appsettings.json");
-    }
-    
-    options.ClientId = clientId;
-    options.ClientSecret = clientSecret;
-    options.CallbackPath = "/api/Auth/google-callback";
-    options.SaveTokens = true;
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    
-    if (builder.Environment.IsDevelopment())
-    {
-        options.CorrelationCookie.SameSite = SameSiteMode.None;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.None;
-    }
-    else
-    {
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-    }
-    options.CorrelationCookie.HttpOnly = true;
 });
 
 builder.Services.AddAuthorization();
@@ -86,7 +84,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5001")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -95,10 +93,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
-builder.Services.AddHttpClient<PinterestService>();
-builder.Services.AddScoped<IPinterestService, PinterestService>();
+builder.Services.AddHttpClient();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -142,9 +144,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseRouting();
-
 app.UseCors("AllowReactApp");
+
+app.UseRouting();
 
 if (app.Environment.IsProduction())
 {
@@ -164,6 +166,26 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Глобальная обработка ошибок
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        
+        var logger = context.RequestServices.GetRequiredService<Microsoft.Extensions.Logging.ILogger<Program>>();
+        var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        
+        if (exception != null)
+        {
+            logger.LogError(exception, "Unhandled exception occurred");
+        }
+        
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(new { message = "An error occurred. Please try again later." }));
+    });
+});
 
 app.MapControllers();
 

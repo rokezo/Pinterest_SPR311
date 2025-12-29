@@ -1,0 +1,2 @@
+ALTER TABLE Comments ADD COLUMN ParentCommentId INTEGER;
+
